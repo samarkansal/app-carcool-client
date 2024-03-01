@@ -43,7 +43,7 @@ npm run dev
 - Kritika G.
 
 
-<img src="./public/images/carcool-logo3.png" alt="CarCool - Ride Sharing App Logo" width="200" height="200">
+<img src="./public/images/carcool-logo3.png" alt="CarCool - Ride Sharing App Logo" width="200" height="100">
 
 
 
