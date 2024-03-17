@@ -18,23 +18,21 @@ This repository contains the frontend codebase for CarCool - a ride-sharing appl
 ## Setup and start development server
 
 ```bash
-git clone https://github.com/samarkansal/carcool-client.git
+git clone https://github.com/samarkansal/app-carcool-client.git
 
-cd carcool-client
+cd app-carcool-client
 
 npm i
 
 npm run dev
 ```
 
-
 ## Configure environment variables:
 
-   - **REACT_APP_FIREBASE_API_KEY**: Firebase auth api key.
-   - **GOOGLE_MAPS_API_KEY**: Google Maps API key.
-   - **ENVIRONMENT**: local/prod
+- **REACT_APP_FIREBASE_API_KEY**: Firebase auth api key.
+- **GOOGLE_MAPS_API_KEY**: Google Maps API key.
+- **ENVIRONMENT**: local/prod
 
-  
 ## Contributors
 
 - Aseem Khandelwal
@@ -42,8 +40,4 @@ npm run dev
 - Samar Kansal
 - Kritika G.
 
-
 <img src="./public/images/carcool-logo3.png" alt="CarCool - Ride Sharing App Logo" width="200" height="100">
-
-
-

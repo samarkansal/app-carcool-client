@@ -36,7 +36,7 @@ const Register = () => {
         );
         // User has been created successfully, navigate to another route or perform additional setup
         console.log("User registered:", userCredential.user);
-        navigate("/"); // Redirect to homepage or dashboard
+        navigate("/preferences"); // Redirect to homepage or dashboard
       } catch (error) {
         console.error("Error signing up:", error.message);
         // Optionally, handle or display the error more gracefully
