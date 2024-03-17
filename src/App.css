@@ -70,12 +70,13 @@
 .py-5 {
   padding: 5rem 0;
 }
+/*
 .container {
   background-color: rgba(10, 10, 10, 0.7);
   width: 300px;
   border-radius: 30px;
   margin-top: 10rem;
-  left: 50%;
+  left: 4%;
   margin-left: -150px;
   padding: 7rem 2.5rem 1rem 2.5rem;
   display: flex;
@@ -86,6 +87,8 @@
   border-radius: 2.5rem;
   position: absolute;
 }
+*/
+
 .login-container {
   border-radius: 0.6rem;
   text-align: center;
@@ -234,6 +237,9 @@
 .footer-sep > * {
   flex: 1 1 150px;
 }
+.form-control {
+  font-family: 'Raleway', sans-serif, Courier, monospace;
+}
 .form-group {
   margin: 1.2rem 0;
 }
@@ -324,7 +330,7 @@ img {
   background-position: center center;
   background-repeat: no-repeat;
   background-size: cover;
-  height: 80vh;
+  height: 100%;
 }
 .bgimg-inner {
   font-size: larger;

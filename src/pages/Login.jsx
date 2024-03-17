@@ -17,7 +17,7 @@ const Login = () => {
       setError("");
       setLoading(true);
       await login(emailRef.current.value, passwordRef.current.value);
-      navigate("/dashboard"); // Redirect to the desired page after login
+      navigate("/home"); // Redirect to the desired page after login
     } catch (error) {
       setError("Failed to log in");
       console.error(error);
