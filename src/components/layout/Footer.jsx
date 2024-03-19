@@ -3,7 +3,11 @@ import React from "react";
 const Footer = () => {
   return (
     <footer className="global-footer">
-      <img className="carcool-logo" alt="description of img" />
+      <img
+        className="carcool-logo"
+        alt="description of img"
+        src="/images/carcool-logo3.png"
+      />
       <section className="footer-sep">
         <ul>
           <h4>Explore</h4>
@@ -70,7 +74,7 @@ const Footer = () => {
         </ul>
       </section>
       <section className="footer-sep">
-        <p>&#169 2024 CarCool. All Rights Reserved.</p>
+        <p>&copy; 2024 CarCool. All Rights Reserved.</p>
       </section>
     </footer>
   );
