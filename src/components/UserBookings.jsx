@@ -74,16 +74,31 @@ const UserBookings = () => {
     );
   }
 
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "cancelled":
+      case "rejected":
+        return <i className="fas fa-ban"></i>;
+      case "confirmed":
+        return <i className="far fa-calendar-check"></i>;
+      default:
+        return <i className="fas fa-hourglass-half"></i>;
+    }
+  };
+
+  const capitalizeFirstLetter = (string) =>
+    string.charAt(0).toUpperCase() + string.slice(1);
+
   return (
     <div className="your-bookings-cont">
-      <Typography variant="h4">
+      <h3>
         Your Bookings
-        <button onClick={fetchBookings}>refresh</button>
-      </Typography>
+        {/* <button onClick={fetchBookings}>refresh</button> */}
+      </h3>
       {bookings.length > 0 ? (
-        <Grid container spacing={3}>
+        <div className="bcard-cont" spacing={3}>
           {bookings.map((booking) => (
-            <Grid item xs={12} sm={6} md={4} key={booking.ride.id}>
+            <div key={booking.ride.id}>
               <Nav.Link
                 as={Link}
                 to={`/ride/book/${booking.ride.id}`}
@@ -91,29 +106,42 @@ const UserBookings = () => {
               >
                 <CardContent>
                   <Typography
-                    sx={{ fontWeight: 700 }}
+                    sx={{ fontWeight: 600 }}
                     variant="h5"
                     component="div"
                   >
-                    {booking.ride.car.make} {booking.ride.car.model}
+                    {getStatusIcon(booking.status)}{" "}
+                    {capitalizeFirstLetter(booking.status)}
                   </Typography>
-                  <Typography sx={{ mb: 1.5, color: "white", fontWeight: 600 }}>
+                  <Typography
+                    sx={{ fontWeight: 400 }}
+                    variant="h6"
+                    component="div"
+                  >
+                    {new Date(booking.ride.date).toLocaleString("en-US", {
+                      weekday: "short", // "Sat"
+                      day: "2-digit", // "09"
+                      month: "short", // "Mar"
+                      hour: "2-digit", // "11"
+                      minute: "2-digit", // "30"
+                      hour12: true, // Use AM/PM
+                    })}
+                  </Typography>
+                  <Typography sx={{ mb: 1.5, fontWeight: 600 }}>
                     {booking.ride.startPoint.name} to{" "}
                     {booking.ride.endPoint.name}
                   </Typography>
-                  <Typography variant="body2">
-                    Date: {new Date(booking.ride.date).toLocaleDateString()}
-                  </Typography>
-                  <Typography variant="body2">
-                    Status: {booking.status}
+                  <Typography sx={{ mb: 1.5, fontWeight: 600 }}>
+                    <i className="far fa-user-circle"></i>{" "}
+                    {booking.ride.driverUserId}
                   </Typography>
                 </CardContent>
               </Nav.Link>
-            </Grid>
+            </div>
           ))}
-        </Grid>
+        </div>
       ) : (
-        <h3>You don't have any bookings yet</h3>
+        <h5>You don't have any bookings yet</h5>
       )}
     </div>
   );

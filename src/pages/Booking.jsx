@@ -166,7 +166,90 @@ const Booking = () => {
         center: {
           lat: rideDetails.startPoint.coordinates[0],
           lng: rideDetails.startPoint.coordinates[1],
-        }, // Assuming [longitude, latitude] format
+        },
+        styles: [
+          { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+          {
+            elementType: "labels.text.stroke",
+            stylers: [{ color: "#242f3e" }],
+          },
+          { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+          {
+            featureType: "administrative.locality",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#d59563" }],
+          },
+          {
+            featureType: "poi",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#d59563" }],
+          },
+          {
+            featureType: "poi.park",
+            elementType: "geometry",
+            stylers: [{ color: "#263c3f" }],
+          },
+          {
+            featureType: "poi.park",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#6b9a76" }],
+          },
+          {
+            featureType: "road",
+            elementType: "geometry",
+            stylers: [{ color: "#38414e" }],
+          },
+          {
+            featureType: "road",
+            elementType: "geometry.stroke",
+            stylers: [{ color: "#212a37" }],
+          },
+          {
+            featureType: "road",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#9ca5b3" }],
+          },
+          {
+            featureType: "road.highway",
+            elementType: "geometry",
+            stylers: [{ color: "#746855" }],
+          },
+          {
+            featureType: "road.highway",
+            elementType: "geometry.stroke",
+            stylers: [{ color: "#1f2835" }],
+          },
+          {
+            featureType: "road.highway",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#f3d19c" }],
+          },
+          {
+            featureType: "transit",
+            elementType: "geometry",
+            stylers: [{ color: "#2f3948" }],
+          },
+          {
+            featureType: "transit.station",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#d59563" }],
+          },
+          {
+            featureType: "water",
+            elementType: "geometry",
+            stylers: [{ color: "#17263c" }],
+          },
+          {
+            featureType: "water",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#515c6d" }],
+          },
+          {
+            featureType: "water",
+            elementType: "labels.text.stroke",
+            stylers: [{ color: "#17263c" }],
+          },
+        ], // Assuming [longitude, latitude] format
       });
 
       const directionsService = new window.google.maps.DirectionsService();
@@ -233,23 +316,38 @@ const Booking = () => {
             {rideDetails ? (
               <div className="int2-cont">
                 {/* Display ride information */}
+                <div className="b-heading">
+                  Ride Details
+                  {/* <button onClick={fetchBookings}>refresh</button> */}
+                </div>
                 <div className="ride-box1">
                   <div className="ride-box2">
-                    <h3>Ride Details</h3>
-                    <p>Driver: {rideDetails.driverUserId}</p>
                     <p>
-                      Car: {rideDetails.car.make} {rideDetails.car.model} (
-                      {rideDetails.car.year})
+                      <i className="fas fa-calendar-alt"></i>{" "}
+                      {new Date(rideDetails.date).toLocaleString("en-US", {
+                        weekday: "short", // "Sat"
+                        day: "2-digit", // "09"
+                        month: "short", // "Mar"
+                        hour: "2-digit", // "11"
+                        minute: "2-digit", // "30"
+                        hour12: true, // Use AM/PM
+                      })}
                     </p>
                     <p>
-                      Capacity: {rideDetails.capacity.occupied}/
-                      {rideDetails.capacity.total}
+                      <i className="fas fa-map-marker-alt"></i>{" "}
+                      <span className="boldp">Start Point:</span>{" "}
+                      {rideDetails.startPoint.name}
                     </p>
-                    <p>Start Point: {rideDetails.startPoint.name}</p>
-                    <p>End Point: {rideDetails.endPoint.name}</p>
-                  </div>
-                  <div>
-                    {message && <p>{message}</p>}
+                    <p>
+                      <i className="fas fa-map-marker-alt"></i>{" "}
+                      <span className="boldp">End Point:</span>{" "}
+                      {rideDetails.endPoint.name}
+                    </p>
+                    {message && (
+                      <p className="info-msg">
+                        <i className="fas fa-info-circle"></i> {message}
+                      </p>
+                    )}
                     {!booking ||
                     booking.status === "rejected" ||
                     booking.status === "cancelled" ? (
@@ -259,6 +357,30 @@ const Booking = () => {
                         Cancel Booking
                       </Button>
                     )}
+                  </div>
+                  <div className="ride-box3">
+                    <p>
+                      <i className="far fa-user-circle"></i>{" "}
+                      {rideDetails.driverUserId}
+                    </p>
+                    <p>
+                      <i className="fas fa-car"></i>
+                      {" :"} {rideDetails.car.make} {rideDetails.car.model} (
+                      {rideDetails.car.year})
+                    </p>
+                    <p>
+                      <span className="boldp">Capacity:</span>{" "}
+                      {rideDetails.capacity.occupied}/
+                      {rideDetails.capacity.total}
+                    </p>
+                    <p>
+                      <i className="far fa-star"></i> Ratings: 4.3/5 - 53
+                      ratings
+                    </p>
+                    <p>
+                      {" "}
+                      <i className="fas fa-glass-cheers"></i> Vibe Score: 86%
+                    </p>
                   </div>
                 </div>
                 {/* Additional ride details here */}

@@ -124,32 +124,75 @@ const UpcomingRidesTab = () => {
 
   return (
     <Container>
-      <button onClick={fetchRides}>Refresh</button>
+      {/* <button onClick={fetchRides}>Refresh</button> */}
       {rides.length > 0 ? (
         <div>
           {rides.map((ride) => (
-            <Card key={ride.id}>
-              <CardContent>
+            <div key={ride.id}>
+              <div className="upcoming-card">
                 <Typography variant="h5">
-                  {ride.car.make} {ride.car.model}
+                  <p>
+                    <i className="fas fa-calendar-alt"></i>{" "}
+                    {new Date(ride.date).toLocaleString("en-US", {
+                      weekday: "short", // "Sat"
+                      day: "2-digit", // "09"
+                      month: "short", // "Mar"
+                      hour: "2-digit", // "11"
+                      minute: "2-digit", // "30"
+                      hour12: true, // Use AM/PM
+                    })}
+                  </p>
                 </Typography>
                 {/* Display booking details */}
-                {ride.bookings.map((booking) => (
-                  <Card key={booking.id}>
-                    <CardContent>
-                      <Typography>User: {booking.userId}</Typography>
-                      <Typography>Status: {booking.status}</Typography>
-                      <Button onClick={() => handleConfirm(booking.id)}>
-                        Confirm
-                      </Button>
-                      <Button onClick={() => handleReject(booking.id)}>
-                        Reject
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </CardContent>
-            </Card>
+                <div className="upcoming-box4">
+                  <div>
+                    {ride.bookings.map((booking) => (
+                      <div key={booking.id}>
+                        <div className="ride-box3 upbx">
+                          <div>
+                            {" "}
+                            <p>
+                              <i className="far fa-user-circle"></i>{" "}
+                              {booking.userId}
+                            </p>
+                            <p>
+                              <i className="far fa-star"></i> Ratings: 4.3/5 -
+                              53 ratings
+                            </p>
+                            <p>
+                              {" "}
+                              <i className="fas fa-glass-cheers"></i> Vibe
+                              Score: 86%
+                            </p>
+                            <p>Status: {booking.status}</p>
+                          </div>
+                          <div>
+                            <Button onClick={() => handleConfirm(booking.id)}>
+                              <i className="fas fa-calendar-check"></i> Confirm
+                            </Button>
+                            <Button onClick={() => handleReject(booking.id)}>
+                              <i className="far fa-window-close"></i> Reject
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div>
+                    <p>
+                      <i className="fas fa-map-marker-alt"></i>{" "}
+                      <span className="boldp">Start Point:</span>{" "}
+                      {ride.startPoint.name}
+                    </p>
+                    <p>
+                      <i className="fas fa-map-marker-alt"></i>{" "}
+                      <span className="boldp">End Point:</span>{" "}
+                      {ride.endPoint.name}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       ) : (
