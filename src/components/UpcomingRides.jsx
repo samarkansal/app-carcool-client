@@ -1,169 +1,160 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
-  Box,
   Typography,
   Card,
   CardContent,
-  Grid,
   CircularProgress,
 } from "@mui/material";
-import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
+import { useAuth } from "../contexts/AuthContext"; // Assuming useAuth is implemented
 
 const UpcomingRidesTab = () => {
   const [rides, setRides] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // Set to false by default
-  const [error, setError] = useState(null);
-  const fromInputRef = useRef(null);
-  const toInputRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { currentUser } = useAuth(); // Assuming currentUser contains the logged-in user's details
 
   useEffect(() => {
-    // Ensure Google Maps script is loaded
-    if (!window.google) {
-      console.error("Google Maps JavaScript API not loaded");
-      return;
-    }
-
-    // Initialize autocomplete for both input fields
-    const autocompleteFrom = new window.google.maps.places.Autocomplete(
-      fromInputRef.current
-    );
-    const autocompleteTo = new window.google.maps.places.Autocomplete(
-      toInputRef.current
-    );
-
     fetchRides();
-
-    // Optional: Handle place selection for each autocomplete field
-    // autocompleteFrom.addListener("place_changed", () => {
-    //   const place = autocompleteFrom.getPlace();
-    //   console.log(place); // Do something with the selected place
-    // });
-
-    // autocompleteTo.addListener("place_changed", () => {
-    //   const place = autocompleteTo.getPlace();
-    //   console.log(place); // Do something with the selected place
-    // });
-  }, []);
+  }, [currentUser]);
 
   const fetchRides = async () => {
     setIsLoading(true);
-    setError(null);
     try {
-      const apiUrl = `${import.meta.env.VITE_API_URL}/api/v1/rides?page=1`;
+      // Update the URL to include filtering by driverUserId and future dates
+      const apiUrl = `${import.meta.env.VITE_API_URL}/api/v1/rides/driver/${
+        currentUser.email
+      }?future=true`;
       const response = await fetch(apiUrl);
-      if (!response.ok) throw new Error("Something went wrong!");
+      if (!response.ok) throw new Error("Something went wrong fetching rides!");
       const data = await response.json();
-      setRides(data.result);
+      //console.log(data);
+      // For each ride, fetch associated bookings
+      const ridesWithBookings = await Promise.all(
+        data.map(async (ride) => {
+          const bookingsResponse = await fetch(
+            `${import.meta.env.VITE_API_URL}/api/v1/bookings/for-ride/${
+              ride._id
+            }`
+          );
+          if (!bookingsResponse.ok)
+            throw new Error("Something went wrong fetching bookings!");
+          const bookingsData = await bookingsResponse.json();
+          return { ...ride, bookings: bookingsData };
+        })
+      );
+      console.log(ridesWithBookings);
+      setRides(ridesWithBookings);
     } catch (error) {
-      setError(error.message);
+      console.error("Error:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    fetchRides(); // Fetch rides when the form is submitted
+  if (isLoading) {
+    return <CircularProgress />;
+  }
+
+  const handleConfirm = async (bookingId) => {
+    try {
+      const bookingUpdateData = {
+        status: "confirmed",
+      };
+
+      // Send a PUT request to update the booking status to "confirmed".
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/v1/bookings/${bookingId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            // If you're using Firebase Auth or any other authentication mechanism,
+            // you should include the user's token in the Authorization header.
+            // 'Authorization': `Bearer ${userToken}`
+          },
+          body: JSON.stringify(bookingUpdateData),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Failed to confirm booking");
+      }
+
+      // Optionally, refresh the rides to show the updated booking status
+      await fetchRides();
+    } catch (error) {
+      console.error("Error confirming booking:", error);
+      // Handle the error, possibly by setting an error state or showing a notification
+    }
   };
 
-  if (isLoading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
+  const handleReject = async (bookingId) => {
+    try {
+      const bookingUpdateData = {
+        status: "rejected",
+      };
 
-  if (error) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
-        <Typography color="error">{error}</Typography>
-      </Box>
-    );
-  }
+      // Send a PUT request to update the booking status to "rejected".
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/v1/bookings/${bookingId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            // Include authentication token if necessary
+          },
+          body: JSON.stringify(bookingUpdateData),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Failed to reject booking");
+      }
+
+      // Optionally, refresh the rides to show the updated booking status
+      await fetchRides();
+    } catch (error) {
+      console.error("Error rejecting booking:", error);
+      // Handle the error, possibly by setting an error state or showing a notification
+    }
+  };
 
   return (
-    <Container className="upcoming-cont">
-      {/* Search Form */}
-      {/* <Box
-        className="form-cont"
-        component="form"
-        onSubmit={handleSubmit}
-        sx={{ marginBottom: 4 }}
-      >
-        <Form.Group controlId="from">
-          <Form.Label>From</Form.Label>
-          <Form.Control
-            ref={fromInputRef}
-            type="text"
-            placeholder="Enter starting location"
-          />
-        </Form.Group>
-
-        <Form.Group controlId="to">
-          <Form.Label>To</Form.Label>
-          <Form.Control
-            ref={toInputRef}
-            type="text"
-            placeholder="Enter destination"
-          />
-        </Form.Group>
-
-        <Form.Group controlId="date">
-          <Form.Label>Date</Form.Label>
-          <Form.Control type="date" />
-        </Form.Group>
-
-        <Button variant="primary" type="submit">
-          Search
-        </Button>
-      </Box> */}
-
-      {/* Results Display */}
-      {/* <Typography variant="h4" gutterBottom>
-        Search Results
-      </Typography> */}
-      {/* <Grid container spacing={3}> */}
-      {rides.slice(0, 5).map((ride) => (
-        //   <Grid item xs={12} sm={6} md={4} key={ride._id}>
-        <Card className="search-card row-card" key={ride._id}>
-          <CardContent>
-            <Typography sx={{ fontWeight: 700 }} variant="h5" component="div">
-              {ride.car.make} {ride.car.model}
-            </Typography>
-            <Typography sx={{ mb: 1.5, color: "white", fontWeight: 600 }}>
-              {ride.startPoint.name} to {ride.endPoint.name}
-            </Typography>
-            <Typography variant="body2">
-              Date: {new Date(ride.date).toLocaleDateString()}
-            </Typography>
-            <Typography variant="body2">
-              Seats Available: {ride.capacity.total - ride.capacity.occupied}
-            </Typography>
-            <Typography variant="body2">
-              Price per Seat: ${ride.priceSeat.toFixed(2)}
-            </Typography>
-          </CardContent>
-        </Card>
-        //   </Grid>
-      ))}
-      {/* </Grid> */}
+    <Container>
+      <button onClick={fetchRides}>Refresh</button>
+      {rides.length > 0 ? (
+        <div>
+          {rides.map((ride) => (
+            <Card key={ride.id}>
+              <CardContent>
+                <Typography variant="h5">
+                  {ride.car.make} {ride.car.model}
+                </Typography>
+                {/* Display booking details */}
+                {ride.bookings.map((booking) => (
+                  <Card key={booking.id}>
+                    <CardContent>
+                      <Typography>User: {booking.userId}</Typography>
+                      <Typography>Status: {booking.status}</Typography>
+                      <Button onClick={() => handleConfirm(booking.id)}>
+                        Confirm
+                      </Button>
+                      <Button onClick={() => handleReject(booking.id)}>
+                        Reject
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <p>No rides</p>
+      )}
     </Container>
   );
 };

@@ -10,6 +10,8 @@ import {
 } from "@mui/material";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
+import { Link } from "react-router-dom";
+import { Nav } from "react-bootstrap";
 
 const SearchRidesTab = () => {
   const [rides, setRides] = useState([]);
@@ -140,7 +142,11 @@ const SearchRidesTab = () => {
       <Grid container spacing={3}>
         {rides.map((ride) => (
           <Grid item xs={12} sm={6} md={4} key={ride._id}>
-            <Card className="search-card">
+            <Nav.Link
+              as={Link}
+              to={`/ride/book/${ride._id}`}
+              className="search-card"
+            >
               <CardContent>
                 <Typography
                   sx={{ fontWeight: 700 }}
@@ -163,7 +169,7 @@ const SearchRidesTab = () => {
                   Price per Seat: ${ride.priceSeat.toFixed(2)}
                 </Typography>
               </CardContent>
-            </Card>
+            </Nav.Link>
           </Grid>
         ))}
       </Grid>

@@ -7,6 +7,7 @@ import {
   CardContent,
   Box,
 } from "@mui/material";
+import { useAuth } from "../contexts/AuthContext";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -32,6 +33,9 @@ const CreateRideTab = () => {
   });
   const fromRef = useRef(null);
   const toRef = useRef(null);
+
+  const { currentUser } = useAuth();
+  console.log(currentUser.email);
 
   useEffect(() => {
     function initAutocomplete(inputRef, fieldName) {
@@ -91,14 +95,14 @@ const CreateRideTab = () => {
     e.preventDefault();
     // Convert formValues to the required backend format
     const rideData = {
-      driverUserId: "driver35199", // Example user ID
+      driverUserId: currentUser.email, // Example user ID
       startPoint: {
         name: formValues.startPoint.name,
-        coordinates: [80.6407, -143.0209], // Example coordinates, should be replaced with actual values obtained from Google Places
+        coordinates: formValues.startPoint.coordinates, // Example coordinates, should be replaced with actual values obtained from Google Places
       },
       endPoint: {
         name: formValues.endPoint.name,
-        coordinates: [-20.9069, -18.3401], // Example coordinates
+        coordinates: formValues.endPoint.coordinates, // Example coordinates
       },
       stopPoints: [], // Assuming no stop points for simplicity
       capacity: {

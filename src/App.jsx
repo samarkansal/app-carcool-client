@@ -8,6 +8,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import Preferences from "./pages/Preferences";
+import Booking from "./pages/Booking";
 import { AuthProvider } from "./contexts/AuthContext";
 import "./App.css";
 
@@ -23,6 +24,7 @@ const App = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/home" element={<Home />} />
             <Route path="/preferences" element={<Preferences />} />
+            <Route path="/ride/book/:id" element={<Booking />} />
           </Routes>
         </div>
         <Footer />

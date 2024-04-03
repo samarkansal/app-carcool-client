@@ -12,6 +12,7 @@ import {
   Tabs,
   Tab,
 } from "react-bootstrap";
+import UserBookings from "../components/UserBookings";
 
 const Home = () => {
   const [key, setKey] = useState("search");
@@ -23,6 +24,7 @@ const Home = () => {
       {/* </section> */}
       <div className="dark-overlay">
         <Container className="home-container">
+          <UserBookings />
           <Tabs
             id="controlled-tab"
             activeKey={key}
@@ -37,7 +39,7 @@ const Home = () => {
               <CreateRideTab />
             </Tab>
 
-            <Tab eventKey="upcoming" title="Upcoming Rides">
+            <Tab eventKey="upcoming" title="Upcoming Trips">
               {/* <h2>Upcoming Rides</h2> */}
               <UpcomingRides />
               {/* <Card className="mt-3 search-card">
