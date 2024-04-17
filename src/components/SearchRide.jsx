@@ -3,10 +3,9 @@ import {
   Container,
   Box,
   Typography,
-  Card,
-  CardContent,
   Grid,
   CircularProgress,
+  CardContent,
 } from "@mui/material";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
@@ -14,45 +13,73 @@ import { Link } from "react-router-dom";
 import { Nav } from "react-bootstrap";
 
 const SearchRidesTab = () => {
+  const [formValues, setFormValues] = useState({
+    startPoint: { name: "", coordinates: [0, 0] },
+    endPoint: { name: "", coordinates: [0, 0] },
+    date: "",
+  });
   const [rides, setRides] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // Set to false by default
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const fromInputRef = useRef(null);
   const toInputRef = useRef(null);
+  const dateInputRef = useRef(null);
 
   useEffect(() => {
-    // Ensure Google Maps script is loaded
-    if (!window.google) {
-      console.error("Google Maps JavaScript API not loaded");
-      return;
+    function initAutocomplete(inputRef, fieldName) {
+      if (!window.google) {
+        console.error("Google Maps JavaScript API not loaded");
+        return;
+      }
+      const autocomplete = new window.google.maps.places.Autocomplete(
+        inputRef.current,
+        { types: ["geocode"] }
+      );
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        if (!place.geometry) {
+          console.log("Returned place contains no geometry");
+          return;
+        }
+        const coordinates = [
+          place.geometry.location.lng(),
+          place.geometry.location.lat(),
+        ];
+
+        setFormValues((prevState) => ({
+          ...prevState,
+          [fieldName]: {
+            ...prevState[fieldName],
+            name: place.formatted_address,
+            coordinates: coordinates,
+          },
+        }));
+      });
     }
 
-    // Initialize autocomplete for both input fields
-    const autocompleteFrom = new window.google.maps.places.Autocomplete(
-      fromInputRef.current
-    );
-    const autocompleteTo = new window.google.maps.places.Autocomplete(
-      toInputRef.current
-    );
-
-    // Optional: Handle place selection for each autocomplete field
-    // autocompleteFrom.addListener("place_changed", () => {
-    //   const place = autocompleteFrom.getPlace();
-    //   console.log(place); // Do something with the selected place
-    // });
-
-    // autocompleteTo.addListener("place_changed", () => {
-    //   const place = autocompleteTo.getPlace();
-    //   console.log(place); // Do something with the selected place
-    // });
+    initAutocomplete(fromInputRef, "startPoint");
+    initAutocomplete(toInputRef, "endPoint");
   }, []);
 
-  const fetchRides = async () => {
+  const fetchRides = async (from, to, date) => {
+    console.log(formValues);
     setIsLoading(true);
     setError(null);
+    const searchQuery = {
+      startLocation: from,
+      endLocation: to,
+      date: date,
+    };
     try {
-      const apiUrl = `${import.meta.env.VITE_API_URL}/api/v1/rides?page=1`;
-      const response = await fetch(apiUrl);
+      // Update the URL to include search parameters based on input values
+      const apiUrl = `${import.meta.env.VITE_API_URL}/api/v1/rides/search`;
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(searchQuery),
+      });
       if (!response.ok) throw new Error("Something went wrong!");
       const data = await response.json();
       setRides(data.result);
@@ -65,7 +92,16 @@ const SearchRidesTab = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    fetchRides(); // Fetch rides when the form is submitted
+    const from = formValues.startPoint.coordinates;
+    const to = formValues.endPoint.coordinates;
+    const date = dateInputRef.current.value;
+    fetchRides(from, to, date);
+  };
+
+  const refresh = () => {
+    const from = formValues.startPoint.coordinates;
+    const to = formValues.endPoint.coordinates;
+    fetchRides(from, to, "2024-04-25");
   };
 
   if (isLoading) {
@@ -94,6 +130,7 @@ const SearchRidesTab = () => {
         }}
       >
         <Typography color="error">{error}</Typography>
+        <button onClick={refresh}>Refresh</button>
       </Box>
     );
   }
@@ -108,26 +145,34 @@ const SearchRidesTab = () => {
         sx={{ marginBottom: 4 }}
       >
         <Form.Group controlId="from">
-          <Form.Label>From</Form.Label>
+          <Form.Label>
+            From <span style={{ color: "red" }}>*</span>
+          </Form.Label>
           <Form.Control
             ref={fromInputRef}
             type="text"
             placeholder="Enter starting location"
+            required
           />
         </Form.Group>
 
         <Form.Group controlId="to">
-          <Form.Label>To</Form.Label>
+          <Form.Label>
+            To <span style={{ color: "red" }}>*</span>
+          </Form.Label>
           <Form.Control
             ref={toInputRef}
             type="text"
             placeholder="Enter destination"
+            required
           />
         </Form.Group>
 
         <Form.Group controlId="date">
-          <Form.Label>Date</Form.Label>
-          <Form.Control type="date" />
+          <Form.Label>
+            Date <span style={{ color: "red" }}>*</span>
+          </Form.Label>
+          <Form.Control ref={dateInputRef} type="date" required />
         </Form.Group>
 
         <Button variant="primary" type="submit">
@@ -155,7 +200,9 @@ const SearchRidesTab = () => {
                 >
                   {ride.car.make} {ride.car.model}
                 </Typography>
-                <Typography sx={{ mb: 1.5, color: "white", fontWeight: 600 }}>
+                <Typography
+                  sx={{ mb: 1.5, color: "text.primary", fontWeight: 600 }}
+                >
                   {ride.startPoint.name} to {ride.endPoint.name}
                 </Typography>
                 <Typography variant="body2">

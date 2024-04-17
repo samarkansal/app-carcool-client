@@ -5,8 +5,15 @@ import { Dropdown, Nav, Navbar as BootstrapNavbar } from "react-bootstrap";
 
 const Navbar = () => {
   const { currentUser, logout } = useAuth();
-  const navigate = useNavigate();
+  const firstName =
+    (currentUser &&
+      (currentUser.displayName
+        ? currentUser.displayName.split(" ")[0]
+        : currentUser.email)) ||
+    "";
 
+  const navigate = useNavigate();
+  console.log(currentUser);
   const handleLogout = async () => {
     try {
       await logout();
@@ -41,7 +48,7 @@ const Navbar = () => {
             </Nav.Link>{" "}
             <Dropdown className="nav-dropdown">
               <Dropdown.Toggle variant="success" id="dropdown-basic">
-                Hi {currentUser.email.slice(0, 6)}{" "}
+                Hi {firstName}{" "}
               </Dropdown.Toggle>
 
               <Dropdown.Menu className="drop-menu">

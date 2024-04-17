@@ -28,7 +28,7 @@ const UpcomingRidesTab = () => {
       const response = await fetch(apiUrl);
       if (!response.ok) throw new Error("Something went wrong fetching rides!");
       const data = await response.json();
-      //console.log(data);
+      console.log(data);
       // For each ride, fetch associated bookings
       const ridesWithBookings = await Promise.all(
         data.map(async (ride) => {
@@ -146,37 +146,49 @@ const UpcomingRidesTab = () => {
                 {/* Display booking details */}
                 <div className="upcoming-box4">
                   <div>
-                    {ride.bookings.map((booking) => (
-                      <div key={booking.id}>
-                        <div className="ride-box3 upbx">
-                          <div>
-                            {" "}
-                            <p>
-                              <i className="far fa-user-circle"></i>{" "}
-                              {booking.userId}
-                            </p>
-                            <p>
-                              <i className="far fa-star"></i> Ratings: 4.3/5 -
-                              53 ratings
-                            </p>
-                            <p>
-                              {" "}
-                              <i className="fas fa-glass-cheers"></i> Vibe
-                              Score: 86%
-                            </p>
-                            <p>Status: {booking.status}</p>
+                    {ride.bookings.length > 0 ? (
+                      <div>
+                        <h3>Ride bookings</h3>{" "}
+                        {ride.bookings.map((booking) => (
+                          <div key={booking.id}>
+                            <div className="ride-box3 upbx">
+                              <div>
+                                {" "}
+                                <p>
+                                  <i className="far fa-user-circle"></i>{" "}
+                                  {booking.userId}
+                                </p>
+                                <p>
+                                  <i className="far fa-star"></i> Ratings: 4.3/5
+                                  - 53 ratings
+                                </p>
+                                <p>
+                                  {" "}
+                                  <i className="fas fa-glass-cheers"></i> Vibe
+                                  Score: 86%
+                                </p>
+                                <p>Status: {booking.status}</p>
+                              </div>
+                              <div>
+                                <Button
+                                  onClick={() => handleConfirm(booking.id)}
+                                >
+                                  <i className="fas fa-calendar-check"></i>{" "}
+                                  Confirm
+                                </Button>
+                                <Button
+                                  onClick={() => handleReject(booking.id)}
+                                >
+                                  <i className="far fa-window-close"></i> Reject
+                                </Button>
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <Button onClick={() => handleConfirm(booking.id)}>
-                              <i className="fas fa-calendar-check"></i> Confirm
-                            </Button>
-                            <Button onClick={() => handleReject(booking.id)}>
-                              <i className="far fa-window-close"></i> Reject
-                            </Button>
-                          </div>
-                        </div>
+                        ))}
                       </div>
-                    ))}
+                    ) : (
+                      <h2>No Bookings</h2>
+                    )}
                   </div>
                   <div>
                     <p>

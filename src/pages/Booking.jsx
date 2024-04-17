@@ -158,14 +158,15 @@ const Booking = () => {
   // After your component definition
 
   useEffect(() => {
+    console.log(rideDetails);
     const initMap = () => {
       if (!rideDetails) return; // Ensure ride details are loaded
 
       const map = new window.google.maps.Map(document.getElementById("map"), {
         zoom: 7,
         center: {
-          lat: rideDetails.startPoint.coordinates[0],
-          lng: rideDetails.startPoint.coordinates[1],
+          lat: rideDetails.startPoint.location.coordinates[1],
+          lng: rideDetails.startPoint.location.coordinates[0],
         },
         styles: [
           { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
@@ -258,12 +259,12 @@ const Booking = () => {
 
       const route = {
         origin: {
-          lat: rideDetails.startPoint.coordinates[0],
-          lng: rideDetails.startPoint.coordinates[1],
+          lat: rideDetails.startPoint.location.coordinates[1],
+          lng: rideDetails.startPoint.location.coordinates[0],
         },
         destination: {
-          lat: rideDetails.endPoint.coordinates[0],
-          lng: rideDetails.endPoint.coordinates[1],
+          lat: rideDetails.endPoint.location.coordinates[1],
+          lng: rideDetails.endPoint.location.coordinates[0],
         },
         travelMode: "DRIVING",
       };

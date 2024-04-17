@@ -390,7 +390,7 @@ img {
 }
 
 .bgimg-booking {
-  background-image: url("../public/images/highways.jpeg");
+  background-image: url("./images/highways.jpeg");
   background-position: center center;
   background-repeat: no-repeat;
   background-size: cover;

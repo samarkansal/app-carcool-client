@@ -1,6 +1,11 @@
 import React, { useState, Fragment } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  deleteUser,
+  updateProfile,
+} from "firebase/auth";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +15,8 @@ const Register = () => {
     password: "",
     password2: "",
   });
+
+  let userCredential = null;
 
   // Destructure formData for easy access
   const { name, email, mobile, password, password2 } = formData;
@@ -29,17 +36,73 @@ const Register = () => {
       // Optionally, handle this error more gracefully in your UI
     } else {
       try {
-        const userCredential = await createUserWithEmailAndPassword(
+        userCredential = await createUserWithEmailAndPassword(
           auth,
           email,
           password
         );
-        // User has been created successfully, navigate to another route or perform additional setup
-        console.log("User registered:", userCredential.user);
-        navigate("/preferences"); // Redirect to homepage or dashboard
+
+        // Setting the display name
+        await updateProfile(userCredential.user, {
+          displayName: name,
+        });
+
+        // Extract token and UID for database creation and potential rollback
+        const token = await userCredential.user.getIdToken();
+        const uid = userCredential.user.uid;
+
+        const [first_name, ...lastName] = name.split(" ");
+        console.log(first_name);
+        console.log(lastName);
+        const userData = {
+          firebaseUID: userCredential.user.uid,
+          first_name,
+          last_name: lastName.join(" "), // Joining the rest as lastName
+          mobile,
+          email: userCredential.user.email,
+          // Assuming defaults or empty values for fields not provided by the form
+          car_info: {
+            make: "",
+            model: "",
+            year: 0,
+            color: "",
+            plate_number: "",
+          },
+          profile_picture: "",
+          preferences: [],
+        };
+
+        // Try to create user in database
+        const dbResponse = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/v1/users/`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(userData),
+          }
+        );
+
+        if (!dbResponse.ok) {
+          throw new Error("Failed to create user in DB");
+        }
+
+        navigate("/home");
       } catch (error) {
-        console.error("Error signing up:", error.message);
-        // Optionally, handle or display the error more gracefully
+        console.error("Error:", error.message);
+
+        // Rollback Firebase user if DB creation fails
+        if (error.message === "Failed to create user in DB") {
+          deleteUser(userCredential.user)
+            .then(() => {
+              console.log("Firebase user deleted due to DB creation failure");
+            })
+            .catch((deleteError) => {
+              console.error("Failed to delete Firebase user:", deleteError);
+            });
+        }
       }
     }
   };

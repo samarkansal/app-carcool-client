@@ -54,8 +54,8 @@ const CreateRideTab = () => {
           return;
         }
         const coordinates = [
-          place.geometry.location.lat(),
           place.geometry.location.lng(),
+          place.geometry.location.lat(),
         ];
 
         setFormValues((prevState) => ({
@@ -93,16 +93,24 @@ const CreateRideTab = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Convert formValues to the required backend format
+    // Combine date and time into a single ISO string
+    const rideDateTime = new Date(`${formValues.date}T${formValues.startTime}`);
+    const isoRideDateTime = rideDateTime.toISOString();
     const rideData = {
       driverUserId: currentUser.email, // Example user ID
       startPoint: {
         name: formValues.startPoint.name,
-        coordinates: formValues.startPoint.coordinates, // Example coordinates, should be replaced with actual values obtained from Google Places
+        location: {
+          type: "Point",
+          coordinates: formValues.startPoint.coordinates,
+        },
       },
       endPoint: {
         name: formValues.endPoint.name,
-        coordinates: formValues.endPoint.coordinates, // Example coordinates
+        location: {
+          type: "Point",
+          coordinates: formValues.endPoint.coordinates,
+        },
       },
       stopPoints: [], // Assuming no stop points for simplicity
       capacity: {
@@ -112,7 +120,7 @@ const CreateRideTab = () => {
       car: formValues.car,
       bookings: [],
       status: formValues.status,
-      date: formValues.date,
+      date: isoRideDateTime,
       priceSeat: parseFloat(formValues.priceSeat),
     };
     try {
@@ -158,6 +166,7 @@ const CreateRideTab = () => {
             value={formValues.startPoint.name}
             onChange={(e) => handleChange(e)}
             id="startPoint"
+            required
           />
         </Form.Group>
 
@@ -170,6 +179,7 @@ const CreateRideTab = () => {
             value={formValues.endPoint.name}
             onChange={(e) => handleChange(e)}
             id="endPoint"
+            required
           />
         </Form.Group>
 
@@ -190,6 +200,16 @@ const CreateRideTab = () => {
             type="date"
             onChange={(e) =>
               setFormValues({ ...formValues, date: e.target.value })
+            }
+          />
+        </Form.Group>
+
+        <Form.Group controlId="startTime">
+          <Form.Label>Start Time</Form.Label>
+          <Form.Control
+            type="time"
+            onChange={(e) =>
+              setFormValues({ ...formValues, startTime: e.target.value })
             }
           />
         </Form.Group>

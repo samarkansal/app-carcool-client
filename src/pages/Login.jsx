@@ -10,13 +10,19 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       setError("");
       setLoading(true);
-      await login(emailRef.current.value, passwordRef.current.value);
+      const userCredential = await login(
+        emailRef.current.value,
+        passwordRef.current.value
+      );
+      const tok = await userCredential.user.getIdToken();
+      console.log(tok);
       navigate("/home"); // Redirect to the desired page after login
     } catch (error) {
       setError("Failed to log in");
