@@ -158,7 +158,9 @@ const CreateRideTab = () => {
         sx={{ marginBottom: 4 }}
       >
         <Form.Group>
-          <Form.Label>From</Form.Label>
+          <Form.Label>
+            From<span style={{ color: "red" }}>*</span>
+          </Form.Label>
           <Form.Control
             ref={fromRef}
             type="text"
@@ -171,7 +173,9 @@ const CreateRideTab = () => {
         </Form.Group>
 
         <Form.Group>
-          <Form.Label>To</Form.Label>
+          <Form.Label>
+            To<span style={{ color: "red" }}>*</span>
+          </Form.Label>
           <Form.Control
             ref={toRef}
             type="text"
@@ -184,7 +188,9 @@ const CreateRideTab = () => {
         </Form.Group>
 
         <Form.Group controlId="capacity">
-          <Form.Label>Capacity</Form.Label>
+          <Form.Label>
+            Capacity<span style={{ color: "red" }}>*</span>
+          </Form.Label>
           <Form.Control
             type="number"
             placeholder="Available seats"
@@ -195,7 +201,9 @@ const CreateRideTab = () => {
         </Form.Group>
 
         <Form.Group controlId="date">
-          <Form.Label>Date</Form.Label>
+          <Form.Label>
+            Date<span style={{ color: "red" }}>*</span>
+          </Form.Label>
           <Form.Control
             type="date"
             onChange={(e) =>
@@ -205,7 +213,9 @@ const CreateRideTab = () => {
         </Form.Group>
 
         <Form.Group controlId="startTime">
-          <Form.Label>Start Time</Form.Label>
+          <Form.Label>
+            Start Time<span style={{ color: "red" }}>*</span>
+          </Form.Label>
           <Form.Control
             type="time"
             onChange={(e) =>
@@ -215,7 +225,9 @@ const CreateRideTab = () => {
         </Form.Group>
 
         <Form.Group controlId="priceSeat">
-          <Form.Label>Price per Seat</Form.Label>
+          <Form.Label>
+            Price per Seat<span style={{ color: "red" }}>*</span>
+          </Form.Label>
           <Form.Control
             type="text"
             placeholder="Price per seat"

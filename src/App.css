@@ -389,6 +389,15 @@ img {
   background-attachment: fixed;
 }
 
+.bgimg-user-info {
+  background-image: url("./images/settings.jpeg");
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: relative;
+  background-attachment: fixed;
+}
+
 .bgimg-booking {
   background-image: url("./images/highways.jpeg");
   background-position: center center;
@@ -664,4 +673,34 @@ img {
 
 .your-bookings-cont > h3 {
   font-weight: 900;
+}
+
+/* Custom styles for selected options */
+.custom-select__option--is-selected {
+  background-color: blue !important;
+  color: white !important;
+}
+
+/* Custom styles for option hover */
+.custom-select__option--is-focused {
+  background-color: rgb(0, 0, 0) !important;
+}
+
+/* Custom styles for multi-value (tags) */
+.custom-select__multi-value {
+  background-color: rgb(179, 179, 179) !important;
+}
+
+.custom-select__multi-value-label {
+  color: white !important;
+}
+
+.custom-select__multi-value__remove:hover {
+  background-color: red !important;
+  color: black !important;
+}
+
+/* Customize the dropdown menu */
+.custom-select__menu {
+  background-color: rgb(61, 61, 61) !important;
 }
