@@ -518,6 +518,8 @@ img {
   color: rgb(237, 237, 237);
   border-radius: 4px;
   border: 1px solid rgb(200, 198, 195);
+  height: 275px;
+  overflow-y: auto;
 }
 
 .search-card:hover {
@@ -703,4 +705,18 @@ img {
 /* Customize the dropdown menu */
 .custom-select__menu {
   background-color: rgb(61, 61, 61) !important;
+}
+
+.search-head {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+}
+
+.card-col-cont {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 10px;
 }

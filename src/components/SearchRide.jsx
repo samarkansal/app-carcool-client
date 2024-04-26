@@ -11,6 +11,7 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import { Link } from "react-router-dom";
 import { Nav } from "react-bootstrap";
+import { useAuth } from "../contexts/AuthContext";
 
 const SearchRidesTab = () => {
   const [formValues, setFormValues] = useState({
@@ -19,11 +20,15 @@ const SearchRidesTab = () => {
     date: "",
   });
   const [rides, setRides] = useState([]);
+  const [sortCriteria, setSortCriteria] = useState("earliest");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const fromInputRef = useRef(null);
   const toInputRef = useRef(null);
-  const dateInputRef = useRef(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalRides, setTotalRides] = useState(0);
+  const { currentUser } = useAuth();
 
   useEffect(() => {
     function initAutocomplete(inputRef, fieldName) {
@@ -36,6 +41,7 @@ const SearchRidesTab = () => {
         { types: ["geocode"] }
       );
       autocomplete.addListener("place_changed", () => {
+        console.log("here");
         const place = autocomplete.getPlace();
         if (!place.geometry) {
           console.log("Returned place contains no geometry");
@@ -59,30 +65,47 @@ const SearchRidesTab = () => {
 
     initAutocomplete(fromInputRef, "startPoint");
     initAutocomplete(toInputRef, "endPoint");
-  }, []);
+  }, [fromInputRef, toInputRef]);
+
+  useEffect(() => {
+    const from = formValues.startPoint.coordinates;
+    const to = formValues.endPoint.coordinates;
+    const date = formValues.date;
+    console.log(formValues);
+    // Fetch rides only if there is a valid date and locations
+    if (from.length > 0 && to.length > 0 && date) {
+      fetchRides(from, to, date);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, sortCriteria]);
 
   const fetchRides = async (from, to, date) => {
-    console.log(formValues);
     setIsLoading(true);
     setError(null);
     const searchQuery = {
       startLocation: from,
       endLocation: to,
       date: date,
+      sort: sortCriteria,
+      page: currentPage, // Add page number to the query
     };
     try {
-      // Update the URL to include search parameters based on input values
+      const token = await currentUser.getIdToken();
       const apiUrl = `${import.meta.env.VITE_API_URL}/api/v1/rides/search`;
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(searchQuery),
       });
       if (!response.ok) throw new Error("Something went wrong!");
       const data = await response.json();
+      console.log(data);
       setRides(data.result);
+      setTotalPages(data.totalPages);
+      setTotalRides(data.total);
     } catch (error) {
       setError(error.message);
     } finally {
@@ -92,10 +115,13 @@ const SearchRidesTab = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const from = formValues.startPoint.coordinates;
-    const to = formValues.endPoint.coordinates;
-    const date = dateInputRef.current.value;
-    fetchRides(from, to, date);
+    if (currentPage !== 1) setCurrentPage(1);
+    else {
+      const from = formValues.startPoint.coordinates;
+      const to = formValues.endPoint.coordinates;
+      const date = formValues.date;
+      fetchRides(from, to, date);
+    }
   };
 
   const refresh = () => {
@@ -172,54 +198,117 @@ const SearchRidesTab = () => {
           <Form.Label>
             Date <span style={{ color: "red" }}>*</span>
           </Form.Label>
-          <Form.Control ref={dateInputRef} type="date" required />
+          <Form.Control
+            value={formValues.date}
+            type="date"
+            required
+            onChange={(e) =>
+              setFormValues({ ...formValues, date: e.target.value })
+            }
+          />
         </Form.Group>
 
         <Button variant="primary" type="submit">
           Search
         </Button>
       </Box>
-
-      {/* Results Display */}
-      <Typography variant="h4" gutterBottom>
-        Search Results
-      </Typography>
-      <Grid container spacing={3}>
-        {rides.map((ride) => (
-          <Grid item xs={12} sm={6} md={4} key={ride._id}>
-            <Nav.Link
-              as={Link}
-              to={`/ride/book/${ride._id}`}
-              className="search-card"
-            >
-              <CardContent>
-                <Typography
-                  sx={{ fontWeight: 700 }}
-                  variant="h5"
-                  component="div"
+      {rides.length > 0 ? (
+        <div>
+          {" "}
+          {/* Results Display */}
+          <div className="search-head">
+            <Typography variant="h4" gutterBottom>
+              Search Results
+            </Typography>
+            <Form.Group controlId="sort">
+              <Form.Label>Sort By</Form.Label>
+              <Form.Control
+                as="select"
+                value={sortCriteria}
+                onChange={(e) => setSortCriteria(e.target.value)}
+                required
+              >
+                <option value="earliest">Earliest Departure</option>
+                <option value="vibe">Vibe Score</option>
+                <option value="lowestPrice">Lowest Price</option>
+              </Form.Control>
+            </Form.Group>
+          </div>
+          <Typography variant="h6" gutterBottom>
+            {totalRides} rides available
+          </Typography>
+          <Grid container spacing={3}>
+            {rides.map((ride) => (
+              <Grid item xs={12} sm={6} md={4} key={ride._id}>
+                <Nav.Link
+                  as={Link}
+                  to={`/ride/book/${ride._id}`}
+                  className="search-card"
                 >
-                  {ride.car.make} {ride.car.model}
-                </Typography>
-                <Typography
-                  sx={{ mb: 1.5, color: "text.primary", fontWeight: 600 }}
-                >
-                  {ride.startPoint.name} to {ride.endPoint.name}
-                </Typography>
-                <Typography variant="body2">
-                  Date: {new Date(ride.date).toLocaleDateString()}
-                </Typography>
-                <Typography variant="body2">
-                  Seats Available:{" "}
-                  {ride.capacity.total - ride.capacity.occupied}
-                </Typography>
-                <Typography variant="body2">
-                  Price per Seat: ${ride.priceSeat.toFixed(2)}
-                </Typography>
-              </CardContent>
-            </Nav.Link>
+                  <CardContent>
+                    <Typography
+                      sx={{ fontWeight: 700, mb: 1 }}
+                      variant="h5"
+                      component="div"
+                    >
+                      {ride.car.make} {ride.car.model}
+                    </Typography>
+                    <Typography
+                      sx={{ mb: 1.5, color: "white", fontWeight: 400 }}
+                    >
+                      {ride.startPoint.name} to {ride.endPoint.name}
+                    </Typography>
+                    <div className="card-col-cont">
+                      <Typography variant="body" sx={{ color: "lightblue" }}>
+                        <i className="far fa-clock"></i>{" "}
+                        {new Date(ride.date).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        })}
+                      </Typography>
+                      {/* <Typography variant="body2">
+                      Seats Available:{" "}
+                      {ride.capacity.total - ride.capacity.occupied}
+                    </Typography> */}
+                      <Typography variant="body" sx={{ color: "lightgreen" }}>
+                        <i className="far fa-money-bill-alt"></i> $
+                        {ride.priceSeat.toFixed(2)}
+                      </Typography>
+                    </div>
+                    <Typography variant="body1" sx={{ fontWeight: "600" }}>
+                      <i className="far fa-user"></i> {ride.userName}
+                    </Typography>
+                    <Typography variant="body" sx={{ color: "coral" }}>
+                      <i className="fas fa-glass-cheers"></i> Vibe Score:{" "}
+                      {ride.vibeScore} %
+                    </Typography>
+                  </CardContent>
+                </Nav.Link>
+              </Grid>
+            ))}
           </Grid>
-        ))}
-      </Grid>
+          <Box sx={{ display: "flex", justifyContent: "center", marginTop: 2 }}>
+            <Button
+              disabled={currentPage <= 1}
+              onClick={() => setCurrentPage((current) => current - 1)}
+            >
+              Previous
+            </Button>
+            <Typography sx={{ margin: "0 10px", lineHeight: "2.5rem" }}>
+              Page {currentPage} of {totalPages}
+            </Typography>
+            <Button
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage((current) => current + 1)}
+            >
+              Next
+            </Button>
+          </Box>
+        </div>
+      ) : (
+        <h1>No Rides</h1>
+      )}
     </Container>
   );
 };

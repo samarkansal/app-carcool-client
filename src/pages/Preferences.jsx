@@ -236,6 +236,14 @@ const Preferences = () => {
       return;
     }
     try {
+      const newPrefs = Object.values(selectedOptions).reduce(
+        (acc, category) => {
+          const values = category.map((item) => item.value);
+          return acc.concat(values);
+        },
+        []
+      );
+      user.preferences = newPrefs;
       console.log(user);
       const token = await currentUser.getIdToken();
       const response = await fetch(
@@ -274,6 +282,7 @@ const Preferences = () => {
       ...prev,
       [name]: selected,
     }));
+    console.log(selectedOptions);
   };
 
   return (
