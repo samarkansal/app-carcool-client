@@ -23,7 +23,7 @@ const Login = () => {
       );
       const tok = await userCredential.user.getIdToken();
       console.log(tok);
-      navigate("/home"); // Redirect to the desired page after login
+      navigate("/riderHome"); // Redirect to the desired page after login
     } catch (error) {
       setError("Failed to log in");
       console.error(error);

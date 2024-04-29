@@ -166,12 +166,12 @@
 }
 .btn {
   display: inline-block;
-  background: #070606;
+  background: #070606 !important;
   color: #e9e9e9;
   padding: 0.4rem 0.5rem;
   border: solid;
   border-width: 2px;
-  border-color: #dfdfdf;
+  border-color: #dfdfdf !important;
   cursor: pointer;
   font-size: 1.2rem;
   margin-top: 1rem;
@@ -194,6 +194,25 @@
   top: 0;
   left: 0;
   background-color: rgba(0, 0, 0, 0.33);
+}
+.dark-overlay-user {
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.33);
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+}
+
+.dark-overlay-driver {
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.33);
+  min-height: 80vh;
 }
 
 .dark-overlay-darker {
@@ -387,6 +406,19 @@ img {
   background-size: cover;
   position: relative;
   background-attachment: fixed;
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+}
+
+.bgimg-driver {
+  background-image: url("./images/driver-bg.jpeg");
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: relative;
+  background-attachment: fixed;
+  min-height: 80vh;
 }
 
 .bgimg-user-info {
@@ -396,6 +428,7 @@ img {
   background-size: cover;
   position: relative;
   background-attachment: fixed;
+  min-height: 80vh;
 }
 
 .bgimg-booking {
@@ -405,6 +438,7 @@ img {
   background-size: cover;
   position: relative;
   background-attachment: fixed;
+  min-height: 80vh;
 }
 
 .booking-cont {
@@ -603,7 +637,7 @@ img {
 }
 
 .booking-card {
-  height: 170px;
+  height: 200px;
   border-top-width: 8px;
   margin-bottom: 20px;
   width: 600px;
@@ -690,7 +724,8 @@ img {
 
 /* Custom styles for multi-value (tags) */
 .custom-select__multi-value {
-  background-color: rgb(179, 179, 179) !important;
+  background-color: rgb(213, 213, 213) !important;
+  font-weight: 600;
 }
 
 .custom-select__multi-value-label {
@@ -719,4 +754,33 @@ img {
   flex-direction: row;
   justify-content: space-between;
   margin-bottom: 10px;
+}
+
+input {
+  background-color: rgb(237, 237, 237) !important;
+  border: 1px solid rgb(0, 0, 0) !important;
+  font-weight: 800 !important;
+  font-family: "Courier New", Courier, monospace;
+}
+
+input:focus {
+  border: 2px solid rgb(56, 56, 249) !important;
+  background-color: rgb(255, 255, 255) !important;
+}
+
+.btn-primary:disabled {
+  background-color: black !important;
+  border-color: grey;
+}
+
+.user-card-head {
+  border-bottom: 4px solid rgb(164, 164, 164);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  padding: 3px 15px;
+}
+
+.nav-tabs button {
+  color: rgb(193, 216, 255);
+  font-weight: 800;
 }

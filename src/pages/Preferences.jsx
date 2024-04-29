@@ -287,7 +287,7 @@ const Preferences = () => {
 
   return (
     <div className="bgimg-user-info">
-      <div className="dark-overlay">
+      <div className="dark-overlay-user">
         <Container className="home-container">
           <h1 className="cont-title">User Preferences</h1>
           <Tabs

@@ -89,7 +89,7 @@ const Register = () => {
           throw new Error("Failed to create user in DB");
         }
 
-        navigate("/home");
+        navigate("/preferences");
       } catch (error) {
         console.error("Error:", error.message);
 

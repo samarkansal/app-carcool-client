@@ -2,34 +2,46 @@ import React, { useState, useEffect } from "react";
 import {
   Container,
   Typography,
-  Card,
-  CardContent,
   CircularProgress,
+  Snackbar,
 } from "@mui/material";
 import Button from "react-bootstrap/Button";
 import { useAuth } from "../contexts/AuthContext"; // Assuming useAuth is implemented
+import MuiAlert from "@mui/material/Alert";
 
 const UpcomingRidesTab = () => {
   const [rides, setRides] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [message, setMessage] = useState("");
+  const [openSnackbar, setOpenSnackbar] = useState(false);
   const { currentUser } = useAuth(); // Assuming currentUser contains the logged-in user's details
 
   useEffect(() => {
     fetchRides();
   }, [currentUser]);
 
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenSnackbar(false);
+  };
+
   const fetchRides = async () => {
     setIsLoading(true);
     try {
-      // Update the URL to include filtering by driverUserId and future dates
+      const token = await currentUser.getIdToken(); // Get Firebase auth token
       const apiUrl = `${import.meta.env.VITE_API_URL}/api/v1/rides/driver/${
         currentUser.email
       }?future=true`;
-      const response = await fetch(apiUrl);
+      const response = await fetch(apiUrl, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
       if (!response.ok) throw new Error("Something went wrong fetching rides!");
       const data = await response.json();
-      console.log(data);
-      // For each ride, fetch associated bookings
       const ridesWithBookings = await Promise.all(
         data.map(async (ride) => {
           const bookingsResponse = await fetch(
@@ -43,7 +55,6 @@ const UpcomingRidesTab = () => {
           return { ...ride, bookings: bookingsData };
         })
       );
-      console.log(ridesWithBookings);
       setRides(ridesWithBookings);
     } catch (error) {
       console.error("Error:", error);
@@ -52,79 +63,58 @@ const UpcomingRidesTab = () => {
     }
   };
 
+  const handleBookingUpdate = async (bookingId, newStatus) => {
+    try {
+      const bookingUpdateData = { status: newStatus };
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/v1/bookings/${bookingId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            // Include the token if needed: Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(bookingUpdateData),
+        }
+      );
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || `Failed to ${newStatus} booking`);
+      }
+      setMessage(`Booking ${newStatus} successfully!`);
+      setOpenSnackbar(true);
+      await fetchRides();
+    } catch (error) {
+      console.error("Error updating booking:", error);
+      setMessage(`Error: ${error.message}`);
+      setOpenSnackbar(true);
+    }
+  };
+
   if (isLoading) {
     return <CircularProgress />;
   }
 
-  const handleConfirm = async (bookingId) => {
-    try {
-      const bookingUpdateData = {
-        status: "confirmed",
-      };
-
-      // Send a PUT request to update the booking status to "confirmed".
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/v1/bookings/${bookingId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            // If you're using Firebase Auth or any other authentication mechanism,
-            // you should include the user's token in the Authorization header.
-            // 'Authorization': `Bearer ${userToken}`
-          },
-          body: JSON.stringify(bookingUpdateData),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Failed to confirm booking");
-      }
-
-      // Optionally, refresh the rides to show the updated booking status
-      await fetchRides();
-    } catch (error) {
-      console.error("Error confirming booking:", error);
-      // Handle the error, possibly by setting an error state or showing a notification
-    }
-  };
-
-  const handleReject = async (bookingId) => {
-    try {
-      const bookingUpdateData = {
-        status: "rejected",
-      };
-
-      // Send a PUT request to update the booking status to "rejected".
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/v1/bookings/${bookingId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            // Include authentication token if necessary
-          },
-          body: JSON.stringify(bookingUpdateData),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Failed to reject booking");
-      }
-
-      // Optionally, refresh the rides to show the updated booking status
-      await fetchRides();
-    } catch (error) {
-      console.error("Error rejecting booking:", error);
-      // Handle the error, possibly by setting an error state or showing a notification
-    }
-  };
-
   return (
     <Container>
-      {/* <button onClick={fetchRides}>Refresh</button> */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <MuiAlert
+          onClose={handleCloseSnackbar}
+          severity="success"
+          elevation={6}
+          variant="filled"
+        >
+          {message}
+        </MuiAlert>
+      </Snackbar>
+      <button className="btn" onClick={fetchRides}>
+        <i className="fas fa-sync-alt"></i> Refresh
+      </button>
       {rides.length > 0 ? (
         <div>
           {rides.map((ride) => (
@@ -134,16 +124,15 @@ const UpcomingRidesTab = () => {
                   <p>
                     <i className="fas fa-calendar-alt"></i>{" "}
                     {new Date(ride.date).toLocaleString("en-US", {
-                      weekday: "short", // "Sat"
-                      day: "2-digit", // "09"
-                      month: "short", // "Mar"
-                      hour: "2-digit", // "11"
-                      minute: "2-digit", // "30"
-                      hour12: true, // Use AM/PM
+                      weekday: "short",
+                      day: "2-digit",
+                      month: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
                     })}
                   </p>
                 </Typography>
-                {/* Display booking details */}
                 <div className="upcoming-box4">
                   <div>
                     {ride.bookings.length > 0 ? (
@@ -153,33 +142,28 @@ const UpcomingRidesTab = () => {
                           <div key={booking.id}>
                             <div className="ride-box3 upbx">
                               <div>
-                                {" "}
                                 <p>
                                   <i className="far fa-user-circle"></i>{" "}
                                   {booking.userId}
-                                </p>
-                                <p>
-                                  <i className="far fa-star"></i> Ratings: 4.3/5
-                                  - 53 ratings
-                                </p>
-                                <p>
-                                  {" "}
-                                  <i className="fas fa-glass-cheers"></i> Vibe
-                                  Score: 86%
                                 </p>
                                 <p>Status: {booking.status}</p>
                               </div>
                               <div>
                                 <Button
-                                  onClick={() => handleConfirm(booking.id)}
+                                  onClick={() =>
+                                    handleBookingUpdate(booking.id, "confirmed")
+                                  }
+                                  disabled={booking.status === "confirmed"}
                                 >
-                                  <i className="fas fa-calendar-check"></i>{" "}
                                   Confirm
                                 </Button>
                                 <Button
-                                  onClick={() => handleReject(booking.id)}
+                                  onClick={() =>
+                                    handleBookingUpdate(booking.id, "rejected")
+                                  }
+                                  disabled={booking.status === "rejected"}
                                 >
-                                  <i className="far fa-window-close"></i> Reject
+                                  Reject
                                 </Button>
                               </div>
                             </div>

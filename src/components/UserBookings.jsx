@@ -32,7 +32,13 @@ const UserBookings = () => {
       const apiUrl = `${
         import.meta.env.VITE_API_URL
       }/api/v1/bookings/for-user/${currentUser.email}`;
-      const response = await fetch(apiUrl);
+      const token = await currentUser.getIdToken(); // Get Firebase auth token
+      const response = await fetch(apiUrl, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Include the token in the request
+          "Content-Type": "application/json",
+        },
+      });
       if (!response.ok) throw new Error("Something went wrong!");
       const data = await response.json();
       setBookings(data);
@@ -133,7 +139,7 @@ const UserBookings = () => {
                   </Typography>
                   <Typography sx={{ mb: 1.5, fontWeight: 600 }}>
                     <i className="far fa-user-circle"></i>{" "}
-                    {booking.ride.driverUserId}
+                    {booking.ride.userName}
                   </Typography>
                 </CardContent>
               </Nav.Link>

@@ -125,11 +125,13 @@ const CreateRideTab = () => {
     };
     try {
       console.log(rideData);
+      const token = await currentUser.getIdToken(); // Get Firebase auth token
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/v1/rides/ride`,
         {
           method: "POST",
           headers: {
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(rideData),

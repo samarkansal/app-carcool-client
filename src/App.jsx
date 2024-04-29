@@ -5,8 +5,8 @@ import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
-import Home from "./pages/Home";
+import DriverHome from "./pages/DriverHome";
+import RiderHome from "./pages/RiderHome";
 import Preferences from "./pages/Preferences";
 import Booking from "./pages/Booking";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -22,7 +22,8 @@ const App = () => {
             <Route path="/" element={<Landing />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/home" element={<Home />} />
+            <Route path="/riderHome" element={<RiderHome />} />
+            <Route path="/driverHome" element={<DriverHome />} />
             <Route path="/preferences" element={<Preferences />} />
             <Route path="/ride/book/:id" element={<Booking />} />
           </Routes>

@@ -9,43 +9,50 @@ import {
   Tabs,
   Tab,
 } from "react-bootstrap";
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert from "@mui/material/Alert";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+
+const Alert = React.forwardRef(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 
 const Booking = () => {
   const { id } = useParams();
   const [rideDetails, setRideDetails] = useState(null);
   const [booking, setBooking] = useState(null);
   const [message, setMessage] = useState("");
+  const [snackMsg, setSnackMsg] = useState("");
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
   const { currentUser } = useAuth();
+
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSnackbarOpen(false);
+  };
 
   const createBooking = async () => {
     try {
-      // Retrieve the logged-in user's email using Firebase Auth
       const userEmail = currentUser.email;
-
-      // If user is not logged in or email is not retrieved, throw an error
       if (!userEmail) {
         throw new Error("User must be logged in to book a ride");
       }
-
-      // Set up the booking data
       const bookingData = {
         userId: userEmail,
-        rideId: id, // This comes from the URL parameter
+        rideId: id,
         bookingDate: new Date().toISOString(),
         status: "requested",
       };
 
-      // Make the POST request to the server
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/v1/bookings/`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            // Include your Firebase Auth token in the header if needed
-            // 'Authorization': `Bearer ${yourAuthToken}`
           },
           body: JSON.stringify(bookingData),
         }
@@ -55,59 +62,50 @@ const Booking = () => {
         throw new Error("Network response was not ok");
       }
 
-      // Here you can handle the response from the server, e.g., showing a message to the user
       const responseData = await response.json();
-      console.log("Booking successful:", responseData);
-      // Maybe update the state to reflect the successful booking...
       setBooking(responseData);
+      setMessage("Booking requested successfully.");
+      setSnackbarOpen(true);
     } catch (error) {
       console.error("Error creating booking:", error);
-      // Here, handle any errors that occurred during booking, e.g., show an error message
+      setMessage("Failed to request booking.");
+      setSnackbarOpen(true);
     }
   };
 
   const cancelBooking = async () => {
-    // Ensure that there's an existing booking to cancel.
     if (!booking) {
       setMessage("There is no booking to cancel.");
+      setSnackbarOpen(true);
       return;
     }
 
     try {
-      const bookingUpdateData = {
-        status: "cancelled",
-      };
-
-      // Send a PUT request to update the booking status to "cancelled".
+      const bookingUpdateData = { status: "cancelled" };
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/v1/bookings/${booking.id}`, // Use the actual ID of the booking
+        `${import.meta.env.VITE_API_URL}/api/v1/bookings/${booking.id}`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            // If you're using Firebase Auth or any other authentication mechanism,
-            // you should include the user's token in the Authorization header.
-            // 'Authorization': `Bearer ${userToken}`
           },
           body: JSON.stringify(bookingUpdateData),
         }
       );
 
       if (!response.ok) {
-        // If the server responds with an error, parse the error message
         const errorData = await response.json();
         throw new Error(errorData.detail || "Network response was not ok");
       }
 
-      // If the server responds successfully, update the local state.
       const updatedBooking = await response.json();
-      setBooking(updatedBooking); // Update your state with the new booking data.
+      setBooking(updatedBooking);
       setMessage("Your booking has been cancelled successfully.");
+      setSnackbarOpen(true);
     } catch (error) {
       console.error("Error cancelling booking:", error);
-      setMessage(
-        error.message || "An error occurred while cancelling your booking."
-      );
+      setMessage("Failed to cancel booking.");
+      setSnackbarOpen(true);
     }
   };
 
@@ -124,8 +122,15 @@ const Booking = () => {
 
   const fetchRideDetails = async () => {
     try {
+      const token = await currentUser.getIdToken();
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/v1/rides/ride/${id}`
+        `${import.meta.env.VITE_API_URL}/api/v1/rides/ride/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
       if (!response.ok) throw new Error("Failed to fetch");
       const data = await response.json();
@@ -291,6 +296,7 @@ const Booking = () => {
     switch (booking.status) {
       case "requested":
         setMessage("You have already requested a booking for this ride.");
+        setSnackMsg("Booking Requested Sucessfully");
         break;
       case "confirmed":
         setMessage("Your booking for this ride is confirmed.");
@@ -302,6 +308,7 @@ const Booking = () => {
         break;
       case "cancelled":
         setMessage("You have cancelled your booking for this ride.");
+        setSnackMsg("Booking Cancelled");
         break;
       default:
         setMessage("");
@@ -311,6 +318,20 @@ const Booking = () => {
 
   return (
     <div className="bgimg-booking">
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity="info"
+          sx={{ width: "100%" }}
+        >
+          {snackMsg}
+        </Alert>
+      </Snackbar>
       <div className="dark-overlay-darker">
         <div className="booking-cont">
           <div className="int-cont">
@@ -360,9 +381,9 @@ const Booking = () => {
                     )}
                   </div>
                   <div className="ride-box3">
-                    <p>
+                    <p className="user-card-head">
                       <i className="far fa-user-circle"></i>{" "}
-                      {rideDetails.driverUserId}
+                      {rideDetails.userName}
                     </p>
                     <p>
                       <i className="fas fa-car"></i>
@@ -380,7 +401,8 @@ const Booking = () => {
                     </p>
                     <p>
                       {" "}
-                      <i className="fas fa-glass-cheers"></i> Vibe Score: 86%
+                      <i className="fas fa-glass-cheers"></i> Vibe Score:{" "}
+                      {rideDetails.vibeScore} %
                     </p>
                   </div>
                 </div>

@@ -36,14 +36,14 @@ const Navbar = () => {
         />
       </BootstrapNavbar.Brand>
       <Nav>
-        <Nav.Link as={Link} to="#!">
-          About
-        </Nav.Link>{" "}
         {}
         {currentUser ? (
           <div className="dynamic-nav-link">
-            <Nav.Link as={Link} to="/home">
-              Rides
+            <Nav.Link as={Link} to="/driverHome">
+              <i className="fas fa-plus-circle"></i> Publish a ride
+            </Nav.Link>{" "}
+            <Nav.Link as={Link} to="/riderHome">
+              <i className="fas fa-car-side"></i> Rides
             </Nav.Link>{" "}
             <Dropdown className="nav-dropdown">
               <Dropdown.Toggle variant="success" id="dropdown-basic">
