@@ -11,6 +11,12 @@ import { useAuth } from "../contexts/AuthContext";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import "bootstrap/dist/css/bootstrap.min.css";
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert from "@mui/material/Alert";
+
+const Alert = React.forwardRef(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 
 const CreateRideTab = () => {
   const [formValues, setFormValues] = useState({
@@ -33,9 +39,18 @@ const CreateRideTab = () => {
   });
   const fromRef = useRef(null);
   const toRef = useRef(null);
+  const [snackMsg, setSnackMsg] = useState("");
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   const { currentUser } = useAuth();
   console.log(currentUser.email);
+
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSnackbarOpen(false);
+  };
 
   useEffect(() => {
     function initAutocomplete(inputRef, fieldName) {
@@ -144,15 +159,31 @@ const CreateRideTab = () => {
 
       const data = await response.json();
       console.log(data);
-      alert("Ride created successfully");
+      setSnackMsg("Ride Created Sucessfully");
+      setSnackbarOpen(true);
     } catch (error) {
       console.error("Failed to create ride:", error);
-      alert("Failed to create ride");
+      setSnackMsg("Failed to create ride");
+      setSnackbarOpen(true);
     }
   };
 
   return (
     <Container style={{}}>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity="info"
+          sx={{ width: "100%" }}
+        >
+          {snackMsg}
+        </Alert>
+      </Snackbar>
       <Box
         className="form-cont"
         component="form"

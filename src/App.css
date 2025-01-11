@@ -684,6 +684,13 @@ img {
   display: flex;
   flex-direction: column;
   border-radius: 6px;
+  color: rgb(218, 218, 218);
+}
+
+.upcoming-card:hover {
+  color: white;
+  background-color: #000000f5;
+  border: 1px rgba(215, 215, 252, 0.443) solid;
 }
 
 .upcoming-box4 {
@@ -783,4 +790,11 @@ input:focus {
 .nav-tabs button {
   color: rgb(193, 216, 255);
   font-weight: 800;
+}
+
+.rel-cont {
+  position: relative;
+}
+.rel-cont button {
+  z-index: 20;
 }

@@ -8,6 +8,8 @@ import {
 import Button from "react-bootstrap/Button";
 import { useAuth } from "../contexts/AuthContext"; // Assuming useAuth is implemented
 import MuiAlert from "@mui/material/Alert";
+import { Link } from "react-router-dom";
+import { Nav } from "react-bootstrap";
 
 const UpcomingRidesTab = () => {
   const [rides, setRides] = useState([]);
@@ -56,6 +58,7 @@ const UpcomingRidesTab = () => {
         })
       );
       setRides(ridesWithBookings);
+      console.log(ridesWithBookings);
     } catch (error) {
       console.error("Error:", error);
     } finally {
@@ -118,76 +121,84 @@ const UpcomingRidesTab = () => {
       {rides.length > 0 ? (
         <div>
           {rides.map((ride) => (
-            <div key={ride.id}>
-              <div className="upcoming-card">
-                <Typography variant="h5">
-                  <p>
-                    <i className="fas fa-calendar-alt"></i>{" "}
-                    {new Date(ride.date).toLocaleString("en-US", {
-                      weekday: "short",
-                      day: "2-digit",
-                      month: "short",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: true,
-                    })}
-                  </p>
-                </Typography>
-                <div className="upcoming-box4">
-                  <div>
-                    {ride.bookings.length > 0 ? (
-                      <div>
-                        <h3>Ride bookings</h3>{" "}
-                        {ride.bookings.map((booking) => (
-                          <div key={booking.id}>
-                            <div className="ride-box3 upbx">
-                              <div>
-                                <p>
-                                  <i className="far fa-user-circle"></i>{" "}
-                                  {booking.userId}
-                                </p>
-                                <p>Status: {booking.status}</p>
-                              </div>
-                              <div>
-                                <Button
-                                  onClick={() =>
-                                    handleBookingUpdate(booking.id, "confirmed")
-                                  }
-                                  disabled={booking.status === "confirmed"}
-                                >
-                                  Confirm
-                                </Button>
-                                <Button
-                                  onClick={() =>
-                                    handleBookingUpdate(booking.id, "rejected")
-                                  }
-                                  disabled={booking.status === "rejected"}
-                                >
-                                  Reject
-                                </Button>
+            <div key={ride._id} className="rel-cont">
+              <Nav.Link as={Link} to={`/ride/book/${ride._id}`}>
+                <div className="upcoming-card">
+                  <Typography variant="h5">
+                    <p>
+                      <i className="fas fa-calendar-alt"></i>{" "}
+                      {new Date(ride.date).toLocaleString("en-US", {
+                        weekday: "short",
+                        day: "2-digit",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                      })}
+                    </p>
+                  </Typography>
+                  <div className="upcoming-box4">
+                    <div>
+                      {ride.bookings.length > 0 ? (
+                        <div>
+                          <h3>Ride bookings</h3>{" "}
+                          {ride.bookings.map((booking) => (
+                            <div key={booking.id}>
+                              <div className="ride-box3 upbx">
+                                <div>
+                                  <p>
+                                    <i className="far fa-user-circle"></i>{" "}
+                                    {booking.userId}
+                                  </p>
+                                  <p>Status: {booking.status}</p>
+                                </div>
+                                <div>
+                                  <Button
+                                    onClick={() =>
+                                      handleBookingUpdate(
+                                        booking.id,
+                                        "confirmed"
+                                      )
+                                    }
+                                    disabled={booking.status === "confirmed"}
+                                  >
+                                    Confirm
+                                  </Button>
+                                  <Button
+                                    onClick={() =>
+                                      handleBookingUpdate(
+                                        booking.id,
+                                        "rejected"
+                                      )
+                                    }
+                                    disabled={booking.status === "rejected"}
+                                  >
+                                    Reject
+                                  </Button>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <h2>No Bookings</h2>
-                    )}
-                  </div>
-                  <div>
-                    <p>
-                      <i className="fas fa-map-marker-alt"></i>{" "}
-                      <span className="boldp">Start Point:</span>{" "}
-                      {ride.startPoint.name}
-                    </p>
-                    <p>
-                      <i className="fas fa-map-marker-alt"></i>{" "}
-                      <span className="boldp">End Point:</span>{" "}
-                      {ride.endPoint.name}
-                    </p>
+                          ))}
+                        </div>
+                      ) : (
+                        <h2>No Bookings</h2>
+                      )}
+                    </div>
+                    <div>
+                      <p>
+                        <i className="fas fa-map-marker-alt"></i>{" "}
+                        <span className="boldp">Start Point:</span>{" "}
+                        {ride.startPoint.name}
+                      </p>
+                      <p>
+                        <i className="fas fa-map-marker-alt"></i>{" "}
+                        <span className="boldp">End Point:</span>{" "}
+                        {ride.endPoint.name}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </Nav.Link>
             </div>
           ))}
         </div>
