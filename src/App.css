@@ -379,20 +379,20 @@ img {
   text-align: center;
 }
 .bgimg-1 {
-  background-image: url("./images/bicycle-delivery.jpg");
+  background-image: url("/images/bicycle-delivery.jpg");
 }
 .bgimg-2 {
-  background-image: url("./images/baby-driver2.jpg");
+  background-image: url("/images/baby-driver2.jpg");
 }
 .bgimg-3 {
-  background-image: url("./images/cabfocus.jpg");
+  background-image: url("/images/cabfocus.jpg");
 }
 .bgimg-4 {
-  background-image: url("./images/car-dash-register.jpeg");
+  background-image: url("/images/car-dash-register.jpeg");
 }
 .bg-img-login {
   height: 80vh;
-  background-image: url("./images/road-login.jpeg");
+  background-image: url("/images/road-login.jpeg");
   background-position: center center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -400,7 +400,7 @@ img {
   background-attachment: fixed;
 }
 .bgimg-dash {
-  background-image: url("./images/maps-vint.jpeg");
+  background-image: url("/images/maps-vint.jpeg");
   background-position: center center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -412,7 +412,7 @@ img {
 }
 
 .bgimg-driver {
-  background-image: url("./images/driver-bg.jpeg");
+  background-image: url("/images/driver-bg.jpeg");
   background-position: center center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -422,7 +422,7 @@ img {
 }
 
 .bgimg-user-info {
-  background-image: url("./images/settings.jpeg");
+  background-image: url("/images/settings.jpeg");
   background-position: center center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -432,7 +432,7 @@ img {
 }
 
 .bgimg-booking {
-  background-image: url("./images/highways.jpeg");
+  background-image: url("/images/highways.jpeg");
   background-position: center center;
   background-repeat: no-repeat;
   background-size: cover;
