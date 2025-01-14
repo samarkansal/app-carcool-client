@@ -1,6 +1,12 @@
 import React, { Fragment } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Dropdown, Nav, Navbar as BootstrapNavbar } from "react-bootstrap";
 
 const Landing = () => {
+  const navigate = useNavigate();
+  const handleClick = () => {
+    navigate("/login");
+  };
   return (
     <Fragment>
       <section className="bgimg-2">
@@ -12,13 +18,10 @@ const Landing = () => {
       </section>
       <div className="desc1">
         <h2>Let's make this your least expensive journey ever.</h2>
-        <p>
-          Lorem ipsum dolor sit, amet consectetur adipisicing elit. Voluptatem
-          suscipit, modi, sequi dolorum veritatis quam illum culpa optio
-          incidunt quasi omnis debitis, aperiam quod nesciunt. Animi delectus
-          iusto ?
-        </p>
-        <button className="btn">Offer a Ride</button>
+        <p></p>
+        <button className="btn" onClick={handleClick}>
+          Offer a Ride
+        </button>
       </div>
       <section className="bgimg-3">
         <div className="dark-overlay">
@@ -35,7 +38,9 @@ const Landing = () => {
           delectus eius laudantium, incidunt, accusamus pariatur quos mollitia
           ipsa modi velit.
         </p>
-        <button className="btn">Find a Ride</button>
+        <button className="btn" onClick={handleClick}>
+          Find a Ride
+        </button>
       </div>
     </Fragment>
   );

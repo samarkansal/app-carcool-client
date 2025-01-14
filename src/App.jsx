@@ -10,12 +10,14 @@ import RiderHome from "./pages/RiderHome";
 import Preferences from "./pages/Preferences";
 import Booking from "./pages/Booking";
 import { AuthProvider } from "./contexts/AuthContext";
+import ScrollToTop from "./components/ScrollToTop";
 import "./App.css";
 
 const App = () => {
   return (
     <AuthProvider>
       <Router>
+        <ScrollToTop />
         <Navbar />
         <div style={{ paddingTop: "80px", paddingBottom: "10px" }}>
           <Routes>
