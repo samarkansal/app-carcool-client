@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Container,
   Box,
@@ -13,123 +13,154 @@ import { Link } from "react-router-dom";
 import { Nav } from "react-bootstrap";
 import { useAuth } from "../contexts/AuthContext";
 
+const PAGE_SIZE = 10; // keep whatever you use in the back‑end
+
 const SearchRidesTab = () => {
+  /*********************
+   *  STATE & CONTEXT  *
+   *********************/
   const [formValues, setFormValues] = useState({
-    startPoint: { name: "", coordinates: [0, 0] },
-    endPoint: { name: "", coordinates: [0, 0] },
+    startPoint: { name: "", coordinates: [] },
+    endPoint: { name: "", coordinates: [] },
     date: "",
   });
+
   const [rides, setRides] = useState([]);
   const [sortCriteria, setSortCriteria] = useState("earliest");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const fromInputRef = useRef(null);
-  const toInputRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [totalRides, setTotalRides] = useState(0);
+
   const { currentUser } = useAuth();
 
+  /***************************
+   *  GOOGLE AUTOCOMPLETE    *
+   ***************************/
+  const fromAutocomplete = useRef(null);
+  const toAutocomplete = useRef(null);
+
+  /** stable callback ref for the “From” input */
+  const fromInputRef = useCallback((node) => {
+    if (!node || fromAutocomplete.current || !window.google) return;
+
+    fromAutocomplete.current = new window.google.maps.places.Autocomplete(
+      node,
+      { types: ["geocode"] }
+    );
+
+    fromAutocomplete.current.addListener("place_changed", () => {
+      const place = fromAutocomplete.current.getPlace();
+      if (!place.geometry) return;
+
+      setFormValues((v) => ({
+        ...v,
+        startPoint: {
+          name: place.formatted_address,
+          coordinates: [
+            place.geometry.location.lng(),
+            place.geometry.location.lat(),
+          ],
+        },
+      }));
+    });
+  }, []);
+
+  /** stable callback ref for the “To” input */
+  const toInputRef = useCallback((node) => {
+    if (!node || toAutocomplete.current || !window.google) return;
+
+    toAutocomplete.current = new window.google.maps.places.Autocomplete(node, {
+      types: ["geocode"],
+    });
+
+    toAutocomplete.current.addListener("place_changed", () => {
+      const place = toAutocomplete.current.getPlace();
+      if (!place.geometry) return;
+
+      setFormValues((v) => ({
+        ...v,
+        endPoint: {
+          name: place.formatted_address,
+          coordinates: [
+            place.geometry.location.lng(),
+            place.geometry.location.lat(),
+          ],
+        },
+      }));
+    });
+  }, []);
+
+  /***************************
+   *  FETCH RIDES ON CHANGE  *
+   ***************************/
   useEffect(() => {
-    function initAutocomplete(inputRef, fieldName) {
-      if (!window.google) {
-        console.error("Google Maps JavaScript API not loaded");
-        return;
-      }
-      const autocomplete = new window.google.maps.places.Autocomplete(
-        inputRef.current,
-        { types: ["geocode"] }
-      );
-      autocomplete.addListener("place_changed", () => {
-        console.log("here");
-        const place = autocomplete.getPlace();
-        if (!place.geometry) {
-          console.log("Returned place contains no geometry");
-          return;
-        }
-        const coordinates = [
-          place.geometry.location.lng(),
-          place.geometry.location.lat(),
-        ];
-
-        setFormValues((prevState) => ({
-          ...prevState,
-          [fieldName]: {
-            ...prevState[fieldName],
-            name: place.formatted_address,
-            coordinates: coordinates,
-          },
-        }));
-      });
-    }
-
-    initAutocomplete(fromInputRef, "startPoint");
-    initAutocomplete(toInputRef, "endPoint");
-  }, [fromInputRef, toInputRef]);
-
-  useEffect(() => {
-    const from = formValues.startPoint.coordinates;
-    const to = formValues.endPoint.coordinates;
-    const date = formValues.date;
-    console.log(formValues);
-    // Fetch rides only if there is a valid date and locations
-    if (from.length > 0 && to.length > 0 && date) {
-      fetchRides(from, to, date);
+    const { startPoint, endPoint, date } = formValues;
+    if (
+      startPoint.coordinates.length === 2 &&
+      endPoint.coordinates.length === 2 &&
+      date
+    ) {
+      fetchRides(startPoint.coordinates, endPoint.coordinates, date);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, sortCriteria]);
 
+  /*******************
+   *  API CALL       *
+   *******************/
   const fetchRides = async (from, to, date) => {
-    setIsLoading(true);
-    setError(null);
-    const searchQuery = {
-      startLocation: from,
-      endLocation: to,
-      date: date,
-      sort: sortCriteria,
-      page: currentPage, // Add page number to the query
-    };
     try {
+      setIsLoading(true);
+      setError(null);
+
       const token = await currentUser.getIdToken();
       const apiUrl = `${import.meta.env.VITE_API_URL}/api/v1/rides/search`;
-      const response = await fetch(apiUrl, {
+
+      const res = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(searchQuery),
+        body: JSON.stringify({
+          startLocation: from,
+          endLocation: to,
+          date,
+          sort: sortCriteria,
+          page: currentPage,
+        }),
       });
-      if (!response.ok) throw new Error("Something went wrong!");
-      const data = await response.json();
-      console.log(data);
+
+      if (!res.ok) throw new Error("Something went wrong!");
+      const data = await res.json();
+
       setRides(data.result);
       setTotalPages(data.totalPages);
       setTotalRides(data.total);
-    } catch (error) {
-      setError(error.message);
+    } catch (err) {
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
   };
 
+  /*******************
+   *  FORM HANDLERS  *
+   *******************/
   const handleSubmit = (e) => {
     e.preventDefault();
     if (currentPage !== 1) setCurrentPage(1);
     else {
-      const from = formValues.startPoint.coordinates;
-      const to = formValues.endPoint.coordinates;
-      const date = formValues.date;
-      fetchRides(from, to, date);
+      const { startPoint, endPoint, date } = formValues;
+      fetchRides(startPoint.coordinates, endPoint.coordinates, date);
     }
   };
 
-  const refresh = () => {
-    const from = formValues.startPoint.coordinates;
-    const to = formValues.endPoint.coordinates;
-    fetchRides(from, to, "2024-04-25");
-  };
-
+  /*******************
+   *  RENDER         *
+   *******************/
   if (isLoading) {
     return (
       <Box
@@ -150,13 +181,16 @@ const SearchRidesTab = () => {
       <Box
         sx={{
           display: "flex",
+          flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
           height: "100vh",
         }}
       >
-        <Typography color="error">{error}</Typography>
-        <button onClick={refresh}>Refresh</button>
+        <Typography color="error" mb={2}>
+          {error}
+        </Typography>
+        <Button onClick={() => window.location.reload()}>Reload Page</Button>
       </Box>
     );
   }
@@ -165,11 +199,12 @@ const SearchRidesTab = () => {
     <Container>
       {/* Search Form */}
       <Box
-        className="form-cont"
         component="form"
         onSubmit={handleSubmit}
         sx={{ marginBottom: 4 }}
+        className="form-cont"
       >
+        {/* FROM */}
         <Form.Group controlId="from">
           <Form.Label>
             From <span style={{ color: "red" }}>*</span>
@@ -179,9 +214,17 @@ const SearchRidesTab = () => {
             type="text"
             placeholder="Enter starting location"
             required
+            value={formValues.startPoint.name}
+            onChange={(e) =>
+              setFormValues((v) => ({
+                ...v,
+                startPoint: { ...v.startPoint, name: e.target.value },
+              }))
+            }
           />
         </Form.Group>
 
+        {/* TO */}
         <Form.Group controlId="to">
           <Form.Label>
             To <span style={{ color: "red" }}>*</span>
@@ -191,19 +234,27 @@ const SearchRidesTab = () => {
             type="text"
             placeholder="Enter destination"
             required
+            value={formValues.endPoint.name}
+            onChange={(e) =>
+              setFormValues((v) => ({
+                ...v,
+                endPoint: { ...v.endPoint, name: e.target.value },
+              }))
+            }
           />
         </Form.Group>
 
+        {/* DATE */}
         <Form.Group controlId="date">
           <Form.Label>
             Date <span style={{ color: "red" }}>*</span>
           </Form.Label>
           <Form.Control
-            value={formValues.date}
             type="date"
             required
+            value={formValues.date}
             onChange={(e) =>
-              setFormValues({ ...formValues, date: e.target.value })
+              setFormValues((v) => ({ ...v, date: e.target.value }))
             }
           />
         </Form.Group>
@@ -212,21 +263,21 @@ const SearchRidesTab = () => {
           Search
         </Button>
       </Box>
-      {rides.length > 0 ? (
-        <div>
-          {" "}
-          {/* Results Display */}
+
+      {/* Results */}
+      {rides.length ? (
+        <>
           <div className="search-head">
             <Typography variant="h4" gutterBottom>
               Search Results
             </Typography>
+
             <Form.Group controlId="sort">
               <Form.Label>Sort By</Form.Label>
               <Form.Control
                 as="select"
                 value={sortCriteria}
                 onChange={(e) => setSortCriteria(e.target.value)}
-                required
               >
                 <option value="earliest">Earliest Departure</option>
                 <option value="vibe">Vibe Score</option>
@@ -234,9 +285,11 @@ const SearchRidesTab = () => {
               </Form.Control>
             </Form.Group>
           </div>
+
           <Typography variant="h6" gutterBottom>
             {totalRides} rides available
           </Typography>
+
           <Grid container spacing={3}>
             {rides.map((ride) => (
               <Grid item xs={12} sm={6} md={4} key={ride._id}>
@@ -258,29 +311,28 @@ const SearchRidesTab = () => {
                     >
                       {ride.startPoint.name} to {ride.endPoint.name}
                     </Typography>
+
                     <div className="card-col-cont">
                       <Typography variant="body" sx={{ color: "lightblue" }}>
-                        <i className="far fa-clock"></i>{" "}
+                        <i className="far fa-clock" />{" "}
                         {new Date(ride.date).toLocaleTimeString([], {
                           hour: "2-digit",
                           minute: "2-digit",
                           hour12: true,
                         })}
                       </Typography>
-                      {/* <Typography variant="body2">
-                      Seats Available:{" "}
-                      {ride.capacity.total - ride.capacity.occupied}
-                    </Typography> */}
+
                       <Typography variant="body" sx={{ color: "lightgreen" }}>
-                        <i className="far fa-money-bill-alt"></i> $
+                        <i className="far fa-money-bill-alt" /> $
                         {ride.priceSeat.toFixed(2)}
                       </Typography>
                     </div>
-                    <Typography variant="body1" sx={{ fontWeight: "600" }}>
-                      <i className="far fa-user"></i> {ride.userName}
+
+                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                      <i className="far fa-user" /> {ride.userName}
                     </Typography>
                     <Typography variant="body" sx={{ color: "coral" }}>
-                      <i className="fas fa-glass-cheers"></i> Vibe Score:{" "}
+                      <i className="fas fa-glass-cheers" /> Vibe Score:{" "}
                       {ride.vibeScore} %
                     </Typography>
                   </CardContent>
@@ -288,26 +340,29 @@ const SearchRidesTab = () => {
               </Grid>
             ))}
           </Grid>
-          <Box sx={{ display: "flex", justifyContent: "center", marginTop: 2 }}>
+
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
             <Button
               disabled={currentPage <= 1}
-              onClick={() => setCurrentPage((current) => current - 1)}
+              onClick={() => setCurrentPage((p) => p - 1)}
             >
               Previous
             </Button>
-            <Typography sx={{ margin: "0 10px", lineHeight: "2.5rem" }}>
+            <Typography sx={{ mx: 2, lineHeight: "2.5rem" }}>
               Page {currentPage} of {totalPages}
             </Typography>
             <Button
               disabled={currentPage >= totalPages}
-              onClick={() => setCurrentPage((current) => current + 1)}
+              onClick={() => setCurrentPage((p) => p + 1)}
             >
               Next
             </Button>
           </Box>
-        </div>
+        </>
       ) : (
-        <h1>No Rides</h1>
+        <Typography variant="h5" align="center">
+          No Rides
+        </Typography>
       )}
     </Container>
   );
