@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Container,
   Box,
@@ -13,7 +13,7 @@ import { Link } from "react-router-dom";
 import { Nav } from "react-bootstrap";
 import { useAuth } from "../contexts/AuthContext";
 
-const PAGE_SIZE = 10; // keep whatever you use in the back‑end
+const PAGE_SIZE = 10; // or whatever you use on the backend
 
 const SearchRidesTab = () => {
   /*********************
@@ -35,23 +35,24 @@ const SearchRidesTab = () => {
 
   const { currentUser } = useAuth();
 
-  /***************************
-   *  GOOGLE AUTOCOMPLETE    *
-   ***************************/
-  const fromAutocomplete = useRef(null);
-  const toAutocomplete = useRef(null);
+  /*********************
+   *  INPUT REFS       *
+   *********************/
+  const fromInputEl = useRef(null);
+  const toInputEl = useRef(null);
 
-  /** stable callback ref for the “From” input */
-  const fromInputRef = useCallback((node) => {
-    if (!node || fromAutocomplete.current || !window.google) return;
+  /******************************************
+   *  ATTACH / RE‑ATTACH GOOGLE AUTOCOMPLETE *
+   ******************************************/
+  useEffect(() => {
+    if (!fromInputEl.current || !window.google) return;
 
-    fromAutocomplete.current = new window.google.maps.places.Autocomplete(
-      node,
-      { types: ["geocode"] }
-    );
+    const ac = new window.google.maps.places.Autocomplete(fromInputEl.current, {
+      types: ["geocode"],
+    });
 
-    fromAutocomplete.current.addListener("place_changed", () => {
-      const place = fromAutocomplete.current.getPlace();
+    ac.addListener("place_changed", () => {
+      const place = ac.getPlace();
       if (!place.geometry) return;
 
       setFormValues((v) => ({
@@ -65,18 +66,20 @@ const SearchRidesTab = () => {
         },
       }));
     });
-  }, []);
 
-  /** stable callback ref for the “To” input */
-  const toInputRef = useCallback((node) => {
-    if (!node || toAutocomplete.current || !window.google) return;
+    // cleanup if React swaps the node or component unmounts
+    return () => window.google.maps.event.clearInstanceListeners(ac);
+  }, [fromInputEl.current]);
 
-    toAutocomplete.current = new window.google.maps.places.Autocomplete(node, {
+  useEffect(() => {
+    if (!toInputEl.current || !window.google) return;
+
+    const ac = new window.google.maps.places.Autocomplete(toInputEl.current, {
       types: ["geocode"],
     });
 
-    toAutocomplete.current.addListener("place_changed", () => {
-      const place = toAutocomplete.current.getPlace();
+    ac.addListener("place_changed", () => {
+      const place = ac.getPlace();
       if (!place.geometry) return;
 
       setFormValues((v) => ({
@@ -90,7 +93,9 @@ const SearchRidesTab = () => {
         },
       }));
     });
-  }, []);
+
+    return () => window.google.maps.event.clearInstanceListeners(ac);
+  }, [toInputEl.current]);
 
   /***************************
    *  FETCH RIDES ON CHANGE  *
@@ -210,7 +215,7 @@ const SearchRidesTab = () => {
             From <span style={{ color: "red" }}>*</span>
           </Form.Label>
           <Form.Control
-            ref={fromInputRef}
+            ref={fromInputEl}
             type="text"
             placeholder="Enter starting location"
             required
@@ -230,7 +235,7 @@ const SearchRidesTab = () => {
             To <span style={{ color: "red" }}>*</span>
           </Form.Label>
           <Form.Control
-            ref={toInputRef}
+            ref={toInputEl}
             type="text"
             placeholder="Enter destination"
             required
